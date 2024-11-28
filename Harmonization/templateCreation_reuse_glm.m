@@ -1,16 +1,12 @@
 %{
 
-This program is created for dMRI Harmonization applying the mothod mentioned in:
+This program is created for dMRI Harmonization applying the method mentioned in:
 
-Multi site Harmonization of diffusion MRI data in a registration framework (ANTs based).
+Cross-site harmonization of diffusion MRI data without matched training subjects
 
-If you use this code, please cite the following:
-Hengameh Mirzaalian, Lipeng Ning, Peter Savadjiev, Ofer Pasternak, Sylvain Bouix, Oleg Michailovich,
-Gerald Grant, Christine E. Marx, Rajendra A. Morey, Laura A. Flashman, Mark S. George, Thomas. McAllister,
-Norberto Andaluz, Lori Shutter, Raul Coimbra, Ross D. Zafonte11, Mike J. Coleman, Marek Kubicki,
-Carl-Fredrik Westin, Murray B. Stein, Martha E. Shenton, and Yogesh Rathi. 2016.
- “Multi-site harmonization of diffusion MRI data in a registration framework.”
-Brain Imaging and Behavior Journal.
+ View ORCID ProfileAlberto De Luca, Tine Swartenbroekx,  View ORCID ProfileHarro Seelaar,  View ORCID ProfileJohn van Swieten,  View ORCID ProfileSuheyla Cetin Karayumak,  View ORCID ProfileYogesh Rathi,  View ORCID ProfileOfer Pasternak,  View ORCID ProfileLize Jiskoot,  View ORCID ProfileAlexander Leemans
+
+https://www.biorxiv.org/content/10.1101/2024.05.01.591994v2
 
 As the INPUTS, the user needs to set the following
 
@@ -20,15 +16,10 @@ SITES{2}.fullpath:           full path of the second site file in xls type
 SITES{2}.name:               name of the first site
 templatesPath:               full path of the rish templates
 
-e.g:
-SITES{1}.fullpath = 'site1.xls'; SITES{1}.name='SITE1';
-SITES{2}.fullpath = 'site2.xls'; SITES{2}.name='SITE2';
-templatesPath='/projects/schiz/suheyla/suheyla-harmonization/Templates1/'; mkdir(templatesPath);
-
 OUTPUT:
 HarmonizedDWIPaths:  the harmonized DWI subjects.
 
-Author: Suheyla Cetin Karayumak, skarayumak@bwh.harvard.edu
+Author: Alberto De Luca, a.deluca-2@umcutrecht.nl
 %}
 
 

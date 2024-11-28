@@ -1,3 +1,16 @@
+%{
+
+This program is created for dMRI Harmonization applying the method mentioned in:
+
+Cross-site harmonization of diffusion MRI data without matched training subjects
+
+ View ORCID ProfileAlberto De Luca, Tine Swartenbroekx,  View ORCID ProfileHarro Seelaar,  View ORCID ProfileJohn van Swieten,  View ORCID ProfileSuheyla Cetin Karayumak,  View ORCID ProfileYogesh Rathi,  View ORCID ProfileOfer Pasternak,  View ORCID ProfileLize Jiskoot,  View ORCID ProfileAlexander Leemans
+
+https://www.biorxiv.org/content/10.1101/2024.05.01.591994v2
+
+Author: Alberto De Luca, a.deluca-2@umcutrecht.nl
+%}
+
 % An L2 regularized NNLS function
 function [Deconv_1,Deconv_1_clean] = RegularizedLS(Dictionary_1,OneBigVoxelFull_1,options,lambda,x0)
     if(nargin < 3)

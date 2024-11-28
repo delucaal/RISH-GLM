@@ -72,13 +72,15 @@ option.lambda = 0.001;
 option.parallel=0; %parallel computing for ants  
 option.numcores=4;% number of cpu cores
 option.siteno=1;% create RISH features and diffusion measures for each subject, don't change this!
-
+% SITES=templateCreation(filePath_REF, REF_name, filePath_OTHER, OTHER_name, option, templatesPath);
 option.harmonizeDir = 'harmonizedOutputRISH'; 
 SITES=templateCreation(filePath_REF, REF_name, filePath_OTHER, OTHER_name, option, templatesPath);
 option.harmonizeDir = 'harmonizedOutputRISHGLM'; 
 SITES = templateCreation_reuse_glm(SITES, option, templatesPath, baseTemplate);
 % return
 %% PART 2: Harmonization: Template creation should be succesfully run to move to the harmonization part
+% filePath_REFharmonization='G1'; REF_name='R5_8_32ch'; % 8ch and 32ch are inverted... 
+% filePath_OTHERharmonization='G2'; OTHER_name='R4_8ch'; %  list of all subjects in target site to be harmonized 
 
 SITES{1}.fullpath = 'Source_LEID_1';
 SITES{1}.name = 'R4_8ch';
@@ -91,4 +93,30 @@ SITES{3}.name = 'RTM_48ch';
 
 option.covariates = load('GLM_Covariates.txt');
 
+
+
 HarmonizedDWIPaths=harmonization_touchRef_glm(SITES, option, templatesPath );
+
+%% Auxiliary function for covariates
+function idx = locateindb(db,name)
+    idx = -1;
+    stp = strfind(name,'_dwi_FP');
+    std = strfind(name,'sub-');
+    name = name(std:stp-1);
+    for ix=2:size(db)
+       if(strcmp(db{ix,2},name))
+           idx = ix;
+           return;
+       end
+    end
+end
+
+function list = read_files_list(file)
+    f = fopen(file,'rt');
+    list = {};
+    while(~feof(f))
+        l = fgetl(f);
+        list = cat(1,list,{l});
+    end
+    fclose(f);
+end

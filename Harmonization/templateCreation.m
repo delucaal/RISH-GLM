@@ -33,20 +33,11 @@ Author: Suheyla Cetin Karayumak, skarayumak@bwh.harvard.edu
 
 
 
-function SITES=templateCreation(filePath_REF, REF_name, filePath_OTHER, OTHER_name, option, templatesPath )
+function SITES=templateCreation(SITES, option, templatesPath )
 
 
 mkdir(templatesPath);
 
-%% USER INPUT -->
-% Please enter the full path of xls files.
-% Each file is prepared separetely for each site/scanner.
-% File contains the fullpath of the dwi file and full path of brain mask in nhdr or nifti/analyze type
-
-% images for template creation
-SITES{1}.fullpath = filePath_REF;  SITES{1}.name=REF_name; %REFERENCE SITE
-SITES{2}.fullpath = filePath_OTHER;  SITES{2}.name=OTHER_name;
-option.name=OTHER_name;
 
 %% Steps for harmonization:
 % STEP1: Generate a case list of the images to be used
@@ -71,16 +62,6 @@ end
 fprintf('STEP 3: Creating rish feature templates\n');
 createTemplates(SITES,templatesPath,option);
 disp('End of template creation...');
-
-
-% %Bruno%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Coment the previous 3 lines
-% when usinf this
-% existing_template = '/mnt/data/vci01/Users/brobalo/Harmonization/data/Templates/Lambda_0_001/Utrecht_Munich/Template_no_wmh_Munich_Utrecht_bvalmapped/';
-% % templatesPath = '/mnt/home/vci/brobalo/Desktop/Link_to_brobalo/Harmonization/data/test/Temmplate_WMH_corrected/';
-% createTemplateBasedOnExisting_bruno(SITES, templatesPath, existing_template, option)
-% disp('End of template creation...');
-% % 
-
 
 % Clean the FSL folder
 if ~option.debug
