@@ -38,6 +38,35 @@ function SITES=templateCreation(SITES, option, templatesPath )
 
 mkdir(templatesPath);
 
+% Addition: automatically take care of logistics - A. De Luca (a.deluca-2@umcutrecht.nl)
+for s=1:length(SITES)
+    if(exist([SITES{s}.fullpath filesep 'desc_dwi.txt'],'file') < 1)
+        dwis = dir(fullfile(SITES{s}.fullpath,'*.bval'));
+        dwis_names = cell(length(dwis),1);
+        mask_names = cell(length(dwis),1);
+
+        for d=1:length(dwis)
+            bn = strrep(dwis(d).name,'.bval','');
+            dn = dir(fullfile(dwis(d).folder,[bn '.nii*']));
+            mn = dir(fullfile(dwis(d).folder,[bn '*mask*.nii*']));
+            if(length(dn) ~= 1 || length(mn) ~= 1)
+                error(['Either no or multiple hits for ' bn]);
+            end
+            dwis_names{d} = fullfile(dn.folder,dn.name);
+            mask_names{d} = fullfile(mn.folder,mn.name);
+        end
+
+        fp = fopen([SITES{s}.fullpath filesep 'desc_dwi.txt'],'wt');
+        fm = fopen([SITES{s}.fullpath filesep 'desc_mask.txt'],'wt');
+        for d=1:length(dwis_names)
+            fprintf(fp,'%s%s',dwis_names{d},newline);
+            fprintf(fm,'%s%s',mask_names{d},newline);
+        end
+        fclose(fp);
+        fclose(fm);
+    end
+    SITES{s}.fullpath = [SITES{s}.fullpath filesep 'desc'];
+end
 
 %% Steps for harmonization:
 % STEP1: Generate a case list of the images to be used

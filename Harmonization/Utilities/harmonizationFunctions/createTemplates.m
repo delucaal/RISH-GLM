@@ -55,11 +55,7 @@ if ~exist([templatesPath  'Mean_' SITES{1}.name '_FA.nii.gz'], 'file') ||  ~exis
             ' -t BSplineSyN[0.1,26,0]   -m CC  -r 1 -c 0 -l 1 -f 8x4x2x1 -s 3x2x1x0 -o ', templatesPath,...
             ' ', templatesPath, 'CaseList_MultivariateTemplate.txt']);
     end
-    
-    
-    
-    
-    
+   
     % STEP3: Create a list of *Warp.nii.gz and *GenericAffine.mat for antsApplyTransforms.sh
     currentFolder = pwd;
     cd(templatesPath );
@@ -197,73 +193,80 @@ if ~exist([templatesPath  'Mean_' SITES{1}.name '_FA.nii.gz'], 'file') ||  ~exis
     
     
     
-    % %% Diffusion Measures (GFA, GFA, MD) differences:
-    %
-    % For traveling heads,  subtract other site from reference site for each
-    % subject. Then take the mean.
-    for mi=1:numel(diffusionMeasures)
-        if option.travelingHeads
-            temp{1}=[]; temp{2}=[]; temp{3}=[];
-            
-            for i=1:SITES{1}.ImageNum
+    for s=1:length(SITES)
+        if(s == option.reference_site)
+            continue
+        end
+        
+        % %% Diffusion Measures (GFA, GFA, MD) differences:
+        %
+        % For traveling heads,  subtract other site from reference site for each
+        % subject. Then take the mean.
+
+        for mi=1:numel(diffusionMeasures)
+            if option.travelingHeads
+                temp{1}=[]; temp{2}=[]; temp{3}=[];
                 
-                dtiPathRef=[SITES{1}.InputImages{i}.ImageDirectory,option.DTIdir, SITES{1}.InputImages{i}.ImageName];
-                niiRef=load_untouch_nii([dtiPathRef, '_Warped', diffusionMeasures{mi}, '.nii.gz']);
+                for i=1:SITES{s}.ImageNum
+                    
+                    dtiPathRef=[SITES{option.reference_site}.InputImages{i}.ImageDirectory,option.DTIdir, SITES{option.reference_site}.InputImages{i}.ImageName];
+                    niiRef=load_untouch_nii([dtiPathRef, '_Warped', diffusionMeasures{mi}, '.nii.gz']);
+                    
+                    dtiPathOther=[SITES{s}.InputImages{i}.ImageDirectory,option.DTIdir, SITES{s}.InputImages{i}.ImageName];
+                    niiOther=load_untouch_nii([dtiPathOther, '_Warped', diffusionMeasures{mi}, '.nii.gz']);
+                    
+                    
+                    temp{1}= cat(4,temp{1}, ( niiRef.img-niiOther.img).*single(maskRef.img));
+                    
+                    perct = 100*(niiRef.img-niiOther.img)./(niiRef.img+eps);
+                    perct(isnan(perct))=0; perct(perct>100)=100; perct(perct<-100)=-100;
+                    temp{2}= cat(4,temp{2}, perct.*single(maskRef.img));
+                    
+                    perct = 100*(smooth3(niiRef.img)-smooth3(niiOther.img))./(smooth3(niiRef.img)+eps);
+                    perct(isnan(perct))=0; perct(perct>100)=100; perct(perct<-100)=-100;
+                    temp{3}= cat(4,temp{3}, perct.*single(maskRef.img));
+                    
+                end
+                niiOther.img = mean(temp{1},4);
+                save_untouch_nii(niiOther,[templatesPath  'Delta_' SITES{s}.name '_' diffusionMeasures{mi}, '.nii.gz']);
                 
-                dtiPathOther=[SITES{2}.InputImages{i}.ImageDirectory,option.DTIdir, SITES{2}.InputImages{i}.ImageName];
-                niiOther=load_untouch_nii([dtiPathOther, '_Warped', diffusionMeasures{mi}, '.nii.gz']);
+                mu = mean(temp{2},4);
+                mu(mu>100)=100; mu(isnan(mu))=0;
+                niiOther.img = mu;
+                save_untouch_nii(niiOther,[templatesPath  'PercentageDiff_' SITES{s}.name '_' diffusionMeasures{mi}, '.nii.gz']);
+                clear mu;
                 
+                mu = mean(temp{3},4);
+                mu(mu>100)=100; mu(isnan(mu))=0;
+                niiOther.img =  mu;
+                save_untouch_nii(niiOther,[templatesPath  'PercentageDiff_' SITES{s}.name '_' diffusionMeasures{mi}, 'smooth.nii.gz']);
                 
-                temp{1}= cat(4,temp{1}, ( niiRef.img-niiOther.img).*single(maskRef.img));
+            else
+                % For others, subtract the mean of other site from the mean of
+                % reference site.
+                niiRef = load_untouch_nii([templatesPath  'Mean_' SITES{option.reference_site}.name '_', diffusionMeasures{mi}, '.nii.gz']);
+                niiOther = load_untouch_nii([templatesPath  'Mean_' SITES{s}.name '_', diffusionMeasures{mi}, '.nii.gz']);
+                
+                niiRef.img = niiRef.img.*single(maskRef.img);
+                niiOther.img = niiOther.img.*single(maskRef.img);
+                nii = niiOther;
+                nii.img = (niiRef.img-niiOther.img);
+                save_untouch_nii(nii,[templatesPath  'Delta_' SITES{s}.name '_' diffusionMeasures{mi}, '.nii.gz']);
                 
                 perct = 100*(niiRef.img-niiOther.img)./(niiRef.img+eps);
                 perct(isnan(perct))=0; perct(perct>100)=100; perct(perct<-100)=-100;
-                temp{2}= cat(4,temp{2}, perct.*single(maskRef.img));
+                nii.img = perct;
+                save_untouch_nii(nii,[templatesPath  'PercentageDiff_' SITES{s}.name '_' diffusionMeasures{mi}, '.nii.gz']);
                 
                 perct = 100*(smooth3(niiRef.img)-smooth3(niiOther.img))./(smooth3(niiRef.img)+eps);
                 perct(isnan(perct))=0; perct(perct>100)=100; perct(perct<-100)=-100;
-                temp{3}= cat(4,temp{3}, perct.*single(maskRef.img));
+                nii.img =  perct;
+                save_untouch_nii(nii,[templatesPath  'PercentageDiff_', diffusionMeasures{mi}, 'smooth.nii.gz']);
                 
             end
-            niiOther.img = mean(temp{1},4);
-            save_untouch_nii(niiOther,[templatesPath  'Delta_', diffusionMeasures{mi}, '.nii.gz']);
-            
-            mu = mean(temp{2},4);
-            mu(mu>100)=100; mu(isnan(mu))=0;
-            niiOther.img = mu;
-            save_untouch_nii(niiOther,[templatesPath  'PercentageDiff_', diffusionMeasures{mi}, '.nii.gz']);
-            clear mu;
-            
-            mu = mean(temp{3},4);
-            mu(mu>100)=100; mu(isnan(mu))=0;
-            niiOther.img =  mu;
-            save_untouch_nii(niiOther,[templatesPath  'PercentageDiff_', diffusionMeasures{mi}, 'smooth.nii.gz']);
-            
-        else
-            % For others, subtract the mean of other site from the mean of
-            % reference site.
-            niiRef = load_untouch_nii([templatesPath  'Mean_' SITES{1}.name '_', diffusionMeasures{mi}, '.nii.gz']);
-            niiOther = load_untouch_nii([templatesPath  'Mean_' SITES{2}.name '_', diffusionMeasures{mi}, '.nii.gz']);
-            
-            niiRef.img = niiRef.img.*single(maskRef.img);
-            niiOther.img = niiOther.img.*single(maskRef.img);
-            nii = niiOther;
-            nii.img = (niiRef.img-niiOther.img);
-            save_untouch_nii(nii,[templatesPath  'Delta_', diffusionMeasures{mi}, '.nii.gz']);
-            
-            perct = 100*(niiRef.img-niiOther.img)./(niiRef.img+eps);
-            perct(isnan(perct))=0; perct(perct>100)=100; perct(perct<-100)=-100;
-            nii.img = perct;
-            save_untouch_nii(nii,[templatesPath  'PercentageDiff_', diffusionMeasures{mi}, '.nii.gz']);
-            
-            perct = 100*(smooth3(niiRef.img)-smooth3(niiOther.img))./(smooth3(niiRef.img)+eps);
-            perct(isnan(perct))=0; perct(perct>100)=100; perct(perct<-100)=-100;
-            nii.img =  perct;
-            save_untouch_nii(nii,[templatesPath  'PercentageDiff_', diffusionMeasures{mi}, 'smooth.nii.gz']);
-            
         end
     end
-    
+
     % %% Mean Rish Templates
     for s=1:length(SITES)
         for l=0:2:SHorder
@@ -290,78 +293,80 @@ if ~exist([templatesPath  'Mean_' SITES{1}.name '_FA.nii.gz'], 'file') ||  ~exis
     
     
     if option.travelingHeads
-        
-        for l=0:2:SHorder
-            delta=[]; scale=[];perct=[];  percts=[];
-            for i=1:SITES{1}.ImageNum
-                refPath=[SITES{1}.InputImages{i}.Image_Harmonized_dir, 'rish/', SITES{1}.InputImages{i}.ImageName];
-                refImg=load_untouch_nii([refPath, '_WarpedL' num2str(l) '.nii.gz']);
+        for s=1:length(SITES)
+            for l=0:2:SHorder
+                delta=[]; scale=[];perct=[];  percts=[];
+                for i=1:SITES{1}.ImageNum
+                    refPath=[SITES{option.reference_site}.InputImages{i}.Image_Harmonized_dir, 'rish/', SITES{option.reference_site}.InputImages{i}.ImageName];
+                    refImg=load_untouch_nii([refPath, '_WarpedL' num2str(l) '.nii.gz']);
+                    
+                    movPath=[SITES{s}.InputImages{i}.Image_Harmonized_dir, 'rish/', SITES{s}.InputImages{i}.ImageName];
+                    movImg=load_untouch_nii([movPath, '_WarpedL' num2str(l) '.nii.gz']);
+                    
+                    delta= cat(4,delta,((refImg.img)-(movImg.img)).*single(maskRef.img));
+                    scale= cat(4,scale,((refImg.img)./(movImg.img+eps)).*single(maskRef.img));
+                    
+                    diff = 100*(refImg.img-movImg.img)./(refImg.img+eps);
+                    diff(isnan(diff))=0; diff(diff>100)=100; diff(diff<-100)=-100;
+                    perct= cat(4,perct,diff.*single(maskRef.img));
+                    
+                    diff = 100*(smooth3(refImg.img)-smooth3(movImg.img))./(smooth3(refImg.img)+eps);
+                    diff(isnan(diff))=0; diff(diff>100)=100; diff(diff<-100)=-100;
+                    percts= cat(4,percts,diff.*single(maskRef.img));
+                    
+                end
                 
-                movPath=[SITES{2}.InputImages{i}.Image_Harmonized_dir, 'rish/', SITES{2}.InputImages{i}.ImageName];
-                movImg=load_untouch_nii([movPath, '_WarpedL' num2str(l) '.nii.gz']);
+                refImg.img = sqrt(mean(scale,4));
+                save_untouch_nii(refImg,[templatesPath  'Scale_' SITES{s}.name '_L'  num2str(l) '.nii.gz']);
                 
-                delta= cat(4,delta,((refImg.img)-(movImg.img)).*single(maskRef.img));
-                scale= cat(4,scale,((refImg.img)./(movImg.img+eps)).*single(maskRef.img));
+                movImg.img = mean(delta,4);
+                save_untouch_nii(movImg,[templatesPath  'Delta_' SITES{s}.name '_L'  num2str(l) '.nii.gz']);
                 
-                diff = 100*(refImg.img-movImg.img)./(refImg.img+eps);
-                diff(isnan(diff))=0; diff(diff>100)=100; diff(diff<-100)=-100;
-                perct= cat(4,perct,diff.*single(maskRef.img));
+                refImg.img = mean(perct, 4);
+                save_untouch_nii(refImg,[templatesPath  'PercentageDiff_' SITES{s}.name '_L'  num2str(l) '.nii.gz']);
                 
-                diff = 100*(smooth3(refImg.img)-smooth3(movImg.img))./(smooth3(refImg.img)+eps);
-                diff(isnan(diff))=0; diff(diff>100)=100; diff(diff<-100)=-100;
-                percts= cat(4,percts,diff.*single(maskRef.img));
-                
+                refImg.img =  mean(percts, 4);
+                save_untouch_nii(refImg,[templatesPath  'PercentageDiff_' SITES{s}.name '_L'  num2str(l) 'smooth.nii.gz']);
             end
-            
-            refImg.img = sqrt(mean(scale,4));
-            save_untouch_nii(refImg,[templatesPath  'Scale_L'  num2str(l) '.nii.gz']);
-            
-            movImg.img = mean(delta,4);
-            save_untouch_nii(movImg,[templatesPath  'Delta_L'  num2str(l) '.nii.gz']);
-            
-            refImg.img = mean(perct, 4);
-            save_untouch_nii(refImg,[templatesPath  'PercentageDiff_L'  num2str(l) '.nii.gz']);
-            
-            refImg.img =  mean(percts, 4);
-            save_untouch_nii(refImg,[templatesPath  'PercentageDiff_L'  num2str(l) 'smooth.nii.gz']);
         end
         
     else
         % For others, subtract the mean of other site from the mean of
         % reference site.
-        for l=0:2:SHorder
+        for s=1:length(SITES)
+            for l=0:2:SHorder
+                
+                
+                refImg=load_untouch_nii([templatesPath  'Mean_' SITES{option.reference_site}.name '_L'  num2str(l)  '.nii.gz']);
+                movImg=load_untouch_nii([templatesPath  'Mean_' SITES{s}.name '_L'  num2str(l)  '.nii.gz']);
+                
+                
+                refImg.img = refImg.img.*single(maskRef.img);
+                movImg.img = movImg.img.*single(maskRef.img);
+                
+                delta1 = refImg.img - movImg.img;
+                scale1 = sqrt(refImg.img./(movImg.img+eps));
+                refTmp = refImg.img; movTmp = movImg.img;
+                
+                refImg.img = scale1.*single(maskRef.img);
+                movImg.img = delta1.*single(maskRef.img);
+                save_untouch_nii(refImg,[templatesPath  'Scale_' SITES{s}.name '_L'  num2str(l) '.nii.gz']);
+                save_untouch_nii(movImg,[templatesPath  'Delta_' SITES{s}.name '_L'  num2str(l) '.nii.gz']);
+                
+                
+                mu = 100*(refTmp - movTmp)./(refTmp+eps);
+                mu(mu>100)=100; mu(isnan(mu))=0; mu(mu<-100)=-100;
+                refImg.img = mu.*single(maskRef.img);
+                save_untouch_nii(refImg,[templatesPath  'PercentageDiff_' SITES{s}.name '_L'  num2str(l) '.nii.gz']);
+                
+                mu = 100*(smooth3(refTmp) - smooth3(movTmp))./(smooth3(refTmp)+eps);
+                mu(mu>100)=100; mu(isnan(mu))=0;mu(mu<-100)=-100;
+                refImg.img = mu.*single(maskRef.img);
+                save_untouch_nii(refImg,[templatesPath  'PercentageDiff_' SITES{s}.name '_L'  num2str(l) 'smooth.nii.gz']);
+                clear mu;
+            end
             
-            
-            refImg=load_untouch_nii([templatesPath  'Mean_' SITES{1}.name '_L'  num2str(l)  '.nii.gz']);
-            movImg=load_untouch_nii([templatesPath  'Mean_' SITES{2}.name '_L'  num2str(l)  '.nii.gz']);
-            
-            
-            refImg.img = refImg.img.*single(maskRef.img);
-            movImg.img = movImg.img.*single(maskRef.img);
-            
-            delta1 = refImg.img - movImg.img;
-            scale1 = sqrt(refImg.img./(movImg.img+eps));
-            refTmp = refImg.img; movTmp = movImg.img;
-            
-            refImg.img = scale1.*single(maskRef.img);
-            movImg.img = delta1.*single(maskRef.img);
-            save_untouch_nii(refImg,[templatesPath  'Scale_L'  num2str(l) '.nii.gz']);
-            save_untouch_nii(movImg,[templatesPath  'Delta_L'  num2str(l) '.nii.gz']);
-            
-            
-            mu = 100*(refTmp - movTmp)./(refTmp+eps);
-            mu(mu>100)=100; mu(isnan(mu))=0; mu(mu<-100)=-100;
-            refImg.img = mu.*single(maskRef.img);
-            save_untouch_nii(refImg,[templatesPath  'PercentageDiff_L'  num2str(l) '.nii.gz']);
-            
-            mu = 100*(smooth3(refTmp) - smooth3(movTmp))./(smooth3(refTmp)+eps);
-            mu(mu>100)=100; mu(isnan(mu))=0;mu(mu<-100)=-100;
-            refImg.img = mu.*single(maskRef.img);
-            save_untouch_nii(refImg,[templatesPath  'PercentageDiff_L'  num2str(l) 'smooth.nii.gz']);
-            clear mu;
         end
-        
-        
         
     end
     

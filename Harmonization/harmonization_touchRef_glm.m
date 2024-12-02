@@ -1,5 +1,8 @@
 function HarmonizedDWIPaths=harmonization_touchRef_glm(SITES, option, templatesPath )
 
+for s=1:length(SITES)
+    SITES{s}.fullpath = [SITES{s}.fullpath filesep 'desc'];
+end
 
 %% Steps for harmonization:
 

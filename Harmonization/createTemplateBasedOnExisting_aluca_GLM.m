@@ -416,7 +416,7 @@ if ~exist([templatesPath  'Mean_' SITES{1}.name '_FA.nii.gz'], 'file') ||  ~exis
         nii.img = reshape(regression_pval,sx,sy,sz,size(regression_pval,2));
         save_untouch_nii(nii,[templatesPath 'L_' num2str(l) '_RISHGLM_pval.nii.gz']);
     end
-    
+
     % %% Difference Rish
     %
     % % For traveling heads,  subtract other site from reference site for each
@@ -424,41 +424,7 @@ if ~exist([templatesPath  'Mean_' SITES{1}.name '_FA.nii.gz'], 'file') ||  ~exis
     
     
     if option.travelingHeads
-        
-        for l=0:2:SHorder
-            delta=[]; scale=[];perct=[];  percts=[];
-            for i=1:SITES{1}.ImageNum
-                refPath=[SITES{1}.InputImages{i}.Image_Harmonized_dir, 'rish/', SITES{1}.InputImages{i}.ImageName];
-                refImg=load_untouch_nii([refPath, '_WarpedL' num2str(l) '.nii.gz']);
-                
-                movPath=[SITES{2}.InputImages{i}.Image_Harmonized_dir, 'rish/', SITES{2}.InputImages{i}.ImageName];
-                movImg=load_untouch_nii([movPath, '_WarpedL' num2str(l) '.nii.gz']);
-                
-                delta= cat(4,delta,((refImg.img)-(movImg.img)).*single(maskRef.img));
-                scale= cat(4,scale,((refImg.img)./(movImg.img+eps)).*single(maskRef.img));
-                
-                diff = 100*(refImg.img-movImg.img)./(refImg.img+eps);
-                diff(isnan(diff))=0; diff(diff>100)=100; diff(diff<-100)=-100;
-                perct= cat(4,perct,diff.*single(maskRef.img));
-                
-                diff = 100*(smooth3(refImg.img)-smooth3(movImg.img))./(smooth3(refImg.img)+eps);
-                diff(isnan(diff))=0; diff(diff>100)=100; diff(diff<-100)=-100;
-                percts= cat(4,percts,diff.*single(maskRef.img));
-                
-            end
-            
-            refImg.img = sqrt(mean(scale,4));
-            save_untouch_nii(refImg,[templatesPath  'Scale_L'  num2str(l) '.nii.gz']);
-            
-            movImg.img = mean(delta,4);
-            save_untouch_nii(movImg,[templatesPath  'Delta_L'  num2str(l) '.nii.gz']);
-            
-            refImg.img = mean(perct, 4);
-            save_untouch_nii(refImg,[templatesPath  'PercentageDiff_L'  num2str(l) '.nii.gz']);
-            
-            refImg.img =  mean(percts, 4);
-            save_untouch_nii(refImg,[templatesPath  'PercentageDiff_L'  num2str(l) 'smooth.nii.gz']);
-        end
+        % Not implemented
         
     else
         % For others, subtract the mean of other site from the mean of
@@ -493,13 +459,10 @@ if ~exist([templatesPath  'Mean_' SITES{1}.name '_FA.nii.gz'], 'file') ||  ~exis
                 
             end
         end
-        
-        
+               
         
     end
-    
-end
-
+end    
 
 end
 
