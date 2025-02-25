@@ -6,27 +6,30 @@ mkdir('log');
 %[filePath_REF, '_mask.txt']  keep the paths of the dwi paths
 %and the mask paths, but only prefix is given as input. See the example
 %below.
-SITES{1}.fullpath = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/Source1';
-SITES{1}.name = 'R4_8ch';
+SITES{1}.fullpath = 'to_be_completed'; % A folder containing the training data of Site 1: diffusion MRI data (.nii), a mask (same name as data + _mask.nii), and the corresponding .bval/.bvec. 
+SITES{1}.name = 'name_of_site1';
 
-SITES{2}.fullpath = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/Source2';
-SITES{2}.name = 'R5_8_32ch';
+SITES{2}.fullpath = 'to_be_completed'; % A folder containing the training data of Site 2: diffusion MRI data (.nii), a mask (same name as data + _mask.nii), and the corresponding .bval/.bvec. 
+SITES{2}.name = 'name_of_site2';
 
-SITES{3}.fullpath = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/Source3';
-SITES{3}.name = 'RTM_48ch';
+% Note: you need at least 2 sites to run the harmonization.
+
+SITES{3}.fullpath = 'to_be_completed'; % A folder containing the training data of Site 3: diffusion MRI data (.nii), a mask (same name as data + _mask.nii), and the corresponding .bval/.bvec. 
+SITES{3}.name = 'name_of_site3';
+
+% Note: More sites can be added. 
 
 %path of the template  to be created
-templatesPath = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/RISHGLMTemplate/';
-baseTemplate = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/RISHTemplate/';
+templatesPath = 'to_be_completed';
+baseTemplate = 'to_be_completed';
 
-%Creates the option.harmonizeDir under each subject directory, stores the
-%harmonization results inside this directory.
-option.covariates = load('/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/GLM_Covariates_Fix.txt');
+% Covariates should be specified in a text file using one column per covariate of interest.
+option.covariates = load('path_to_covariates.txt');
 
 option.name='AIO';
 
-option.robust_std = 0; % No robust average
-option.reference_site = 2; % Which site to use as a reference
+option.robust_std = 0; % No robust average. Can be useful if the data contains outliers.
+option.reference_site = 1; % Which site to use as a reference. By default, this is the first site.
 option.smooth_std = 0; % no smoothing
 
 % Perform Z-score normalization of all covariates
@@ -73,22 +76,24 @@ option.parallel=0; %parallel computing for ants
 option.numcores=4;% number of cpu cores
 option.siteno=1;% create RISH features and diffusion measures for each subject, don't change this!
 
-option.harmonizeDir = 'harmonizedOutputRISH'; 
+option.harmonizeDir = 'harmonizedOutputRISH'; % creates a folder within the source of each site to store the harmonized data (conventional RISH)
 SITES = templateCreation(SITES, option, baseTemplate);
-option.harmonizeDir = 'harmonizedOutputRISHGLM'; 
+option.harmonizeDir = 'harmonizedOutputRISHGLM'; % creates a folder within the source of each site to store the harmonized data (RISH-GLM)
 SITES = templateCreation_reuse_glm(SITES, option, templatesPath, baseTemplate);
-% return
+
 %% PART 2: Harmonization: Template creation should be succesfully run to move to the harmonization part
 
-SITES{1}.fullpath = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/Source1';
-SITES{1}.name = 'R4_8ch';
+% PART 1 was about training harmonization. 
+% This part follows the same structure but allows to apply harmonization to new data.
+SITES{1}.fullpath = 'to_be_completed';
+SITES{1}.name = 'name_of_site1';
 
-SITES{2}.fullpath = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/Source2';
-SITES{2}.name = 'R5_8_32ch';
+SITES{2}.fullpath = 'to_be_completed';
+SITES{2}.name = 'name_of_site2';
 
-SITES{3}.fullpath = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/Source3';
-SITES{3}.name = 'RTM_48ch';
+SITES{3}.fullpath = 'to_be_completed';
+SITES{3}.name = 'name_of_site3';
 
-option.covariates = load('/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/RISHGLMCleanCodeGitHub/GLM_Covariates_Fix.txt');
+option.covariates = load('to_be_completed.txt');
 option.covariates_2_correct = []; %NOF SITES + the actual index. Not used for now
 HarmonizedDWIPaths=harmonization_touchRef_glm(SITES, option, templatesPath );

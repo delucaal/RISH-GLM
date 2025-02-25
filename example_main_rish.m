@@ -12,12 +12,12 @@ filePath_REF='Source_LEID_3_4'; REF_name='R5_8_32ch';
 filePath_OTHER='Source_RTM_5_6'; OTHER_name='RTM_48ch';
 
 %path of the template  to be created
-templatesPath='/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/TemplateHarm_CheckScales3456/';
-baseTemplate = '/autofs/arch11/DATA/PROVIDI_LAB/Alexander/My_data/FTD_RISC/ProcessedData/Harmonization/Training_GLM_AIO/TemplateHarmRegistrationTest';
+templatesPath='to_be_completed';
+baseTemplate = 'to_be_completed';
 
 %Creates the option.harmonizeDir under each subject directory, stores the
 %harmonization results inside this directory.
-option.harmonizeDir = 'harmonizedOutputForCheckScales'; 
+option.harmonizeDir = 'choose_a_name'; 
 
 
 %% OTHER OPTIONS:
@@ -54,10 +54,9 @@ option.siteno=1;% create RISH features and diffusion measures for each subject, 
 % SITES=templateCreation(filePath_REF, REF_name, filePath_OTHER, OTHER_name, option, templatesPath);
 % SITES=templateCreation(filePath_REF, REF_name, filePath_OTHER, OTHER_name, option, templatesPath);
 SITES = templateCreation_reuse(filePath_REF, REF_name, filePath_OTHER, OTHER_name, option, templatesPath, baseTemplate);
-return
+
 %% PART 2: Harmonization: Template creation should be succesfully run to move to the harmonization part
 filePath_REFharmonization='./G1'; REF_name='R5_8_32ch'; 
-% filePath_OTHERharmonization='./BELGIUM1_b0b1000_spatialtemplate'; OTHER_name='BELGIUM1'; %  list of all subjects in target site to be harmonized 
 filePath_OTHERharmonization='./G2'; OTHER_name='R4_8ch'; %  list of all subjects in target site to be harmonized 
 if exist([templatesPath  'Mean_' SITES{1}.name '_FA.nii.gz'], 'file') &&  exist([templatesPath  'Mean_' SITES{2}.name '_FA.nii.gz'], 'file')
 	HarmonizedDWIPaths=harmonization_touchRef(filePath_REFharmonization, REF_name, filePath_OTHERharmonization, OTHER_name, option, templatesPath );
